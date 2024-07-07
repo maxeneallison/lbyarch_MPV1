@@ -4,7 +4,7 @@ section .text
 bits 64
 default rel 
 global cvtRGBToGray
-extern asmfunc2         ; for computing the grayscale value
+extern asmfunc2         ;for computing the grayscale value
 
 cvtRGBToGray:
     ; Parameters (volatile):
