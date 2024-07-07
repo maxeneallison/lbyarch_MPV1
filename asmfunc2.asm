@@ -1,5 +1,4 @@
 ; callee assembly
-; gagawa ng stack frame
 ; performs average the grayscale value for the current pixel
 
 
@@ -13,10 +12,13 @@ asmfunc2:
     ; rcx - pointer to current RGB pixel
 
     xor rax, rax
+    
     movzx r10, byte [rcx]     ; Red
     add rax, r10
+    
     movzx r10, byte [rcx + 1] ; Green
     add rax, r10
+    
     movzx r10, byte [rcx + 2] ; Blue
     add rax, r10
 

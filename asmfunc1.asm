@@ -14,52 +14,55 @@ cvtRGBToGray:
     ; r9  - n (height)
 
     ; Preserve non-volatile registers and align stack
-    ; Function prologue
-    push rbp                ; Save the base pointer
+    ; sets up the stack frame for the function
+    push rbp                
     mov rbp, rsp            ; Set up new base pointer
-    push rsi                ; Save rsi register
-    push rdi                ; Save rdi register
-    push r12                ; Save r12 register
-    push r13                ; Save r13 register
-    push r14                ; Save r14 register
-    sub rsp, 8*5            ; Allocate shadow space and align stack
 
-    ; Preserve parameters
-    mov r12, rcx            ; Store img2 pointer in r12
-    mov r13, rdx            ; Store img1 pointer in r13
+    ; preserves non-volatile regiters that will be used in the function
+    push rsi                
+    push rdi                
+    push r12                
+    push r13                
+    push r14    
+                
+    sub rsp, 8*5            ; Allocates shadow space on the stack and ensures 16-byte alignment
+
+    ; Preserve input parameters in non-volatile registers
+    mov r12, rcx            ; Store img2 pointer 
+    mov r13, rdx            ; Store img1 pointer
     mov r14, r8             ; Store width in r14
 
-    ; Calculate total number of pixels
-    mov rax, r8             ; Move width to rax
-    mul r9                  ; Multiply width by height (assumed to be in r9)
+    ; Calculate total number of pixels (w*h) and store in r15
+    mov rax, r8             
+    mul r9                  ; Multiply width by height 
     mov r15, rax            ; Store total pixels in r15
 
-    .pixel_loop:
-    ; Prepare parameters for asmfunc2
-    mov rcx, r13            ; Set rcx to current source RGB pixel address
+; ===============================================
+    pixel_loop:
+        mov rcx, r13            ; will be the current source RGB pixel address
+    
+        ; Call asmfunc2 to calculate average, process the current pixel
+        sub rsp, 32             ; Allocate shadow space for asmfunc2 call
+        call asmfunc2           ; Call asmfunc2 function
+        add rsp, 32             ; Clean up shadow space after call
+    
+        ; Store result in destination array
+        mov [r12], al           
+        
+        ; Move to next pixel
+        add r13, 3              ; Move source pointer to next pixel (RGB = 3 bytes)
+        inc r12                 ; Move destination pointer to next byte
+    
 
-    ; Call asmfunc2 to calculate average
-    sub rsp, 32             ; Allocate shadow space for asmfunc2 call
-    call asmfunc2           ; Call asmfunc2 function
-    add rsp, 32             ; Clean up shadow space after call
-
-    ; Store result in destination array
-    mov [r12], al           ; Store the result (in al) to destination
-
-    ; Move to next pixel
-    add r13, 3              ; Move source pointer to next pixel (RGB = 3 bytes)
-    inc r12                 ; Move destination pointer to next byte
-
-    ; Decrement pixel count and continue if not zero
-    dec r15                 ; Decrement total pixel count
-    jnz .pixel_loop         ; If not zero, continue loop
-
-    ; Function epilogue
-    add rsp, 8*5            ; Clean up stack space
-    pop r14                 ; Restore r14
-    pop r13                 ; Restore r13
-    pop r12                 ; Restore r12
-    pop rdi                 ; Restore rdi
-    pop rsi                 ; Restore rsi
-    pop rbp                 ; Restore base pointer
-    ret                     ; Return from function
+        dec r15                 ; Decrement total pixel count
+        jnz pixel_loop         ; If not zero, continue loop
+    
+        ; Restores the stack and registers, then returns from the function
+        add rsp, 8*5            ; Clean stack space
+        pop r14                 
+        pop r13                 
+        pop r12                 
+        pop rdi                 
+        pop rsi                 
+        pop rbp                
+    ret                     
