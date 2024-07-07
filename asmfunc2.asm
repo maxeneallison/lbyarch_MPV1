@@ -8,11 +8,11 @@ default rel
 global asmfunc2
 
 asmfunc2:
-    ; Input:
     ; rcx - pointer to current RGB pixel
 
     xor rax, rax
     
+    ; inputs
     movzx r10, byte [rcx]     ; Red
     add rax, r10
     
@@ -22,7 +22,7 @@ asmfunc2:
     movzx r10, byte [rcx + 2] ; Blue
     add rax, r10
 
-    ; Calculate average
+    ; Compute average
     mov r10, 3
     xor rdx, rdx  ; Clear upper bits for division
     div r10

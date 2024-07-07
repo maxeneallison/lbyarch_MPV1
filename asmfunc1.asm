@@ -1,24 +1,23 @@
-; assembly caller
+; assembly caller - must allocate 32 bytes (4 spaces) due to shadow space + 1 (for 4 parameters)
 
 section .text
 bits 64
 default rel 
 global cvtRGBToGray
-extern asmfunc2
+extern asmfunc2         ; for computing the grayscale value
 
 cvtRGBToGray:
-    ; Parameters:
-    ; rdx - img1 (source RGB image)
-    ; rcx - img2 (destination grayscale image)
-    ; r8  - m (width)
-    ; r9  - n (height)
+    ; Parameters (volatile):
+        ; rdx - img1 (source RGB image)
+        ; rcx - img2 (destination grayscale image)
+        ; r8  - m (width)
+        ; r9  - n (height)
 
-    ; Preserve non-volatile registers and align stack
     ; sets up the stack frame for the function
     push rbp                
     mov rbp, rsp            ; Set up new base pointer
 
-    ; preserves non-volatile regiters that will be used in the function
+    ; preserves non-volatile regiters that will be used in the function, cannot modify them 
     push rsi                
     push rdi                
     push r12                
@@ -26,6 +25,7 @@ cvtRGBToGray:
     push r14    
                 
     sub rsp, 8*5            ; Allocates shadow space on the stack and ensures 16-byte alignment
+                            ; for caller : 40+8 = aligned 
 
     ; Preserve input parameters in non-volatile registers
     mov r12, rcx            ; Store img2 pointer 
@@ -37,7 +37,7 @@ cvtRGBToGray:
     mul r9                  ; Multiply width by height 
     mov r15, rax            ; Store total pixels in r15
 
-; ===============================================
+; =============================================================================
     pixel_loop:
         mov rcx, r13            ; will be the current source RGB pixel address
     
@@ -57,7 +57,7 @@ cvtRGBToGray:
         dec r15                 ; Decrement total pixel count
         jnz pixel_loop         ; If not zero, continue loop
     
-        ; Restores the stack and registers, then returns from the function
+        ; Restores stack and registers, then returns from the function
         add rsp, 8*5            ; Clean stack space
         pop r14                 
         pop r13                 
