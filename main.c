@@ -8,6 +8,7 @@
 - n is the height of the image in pixels
 */
 
+
 extern void cvtRGBToGray(uint8_t* img2, uint8_t* img1, uint8_t m, uint8_t n);
 
 int main() {
@@ -31,7 +32,6 @@ int main() {
         if ((i + 1) % width == 0)
             printf("\n");
     }
-    
 
     return 0;
 }
